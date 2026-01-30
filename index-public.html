@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumes — LED Message Display</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #FFFFFF;
+            --bg-subtle: #F8F9FC;
+            --bg-card: #FFFFFF;
+            --bg-dark: #0B0E1A;
+            --text-primary: #0B0E1A;
+            --text-secondary: #5A6178;
+            --text-tertiary: #8B92A8;
+            --border-light: rgba(11, 14, 26, 0.06);
+            --border-medium: rgba(11, 14, 26, 0.1);
+            --accent-blue: #4C7DFF;
+            --accent-blue-light: rgba(76, 125, 255, 0.08);
+            --accent-cyan: #3FD2C7;
+            --accent-green: #6EE7A8;
+            --accent-yellow: #F4C430;
+            --accent-orange: #F08A24;
+            --accent-purple: #9D7AFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.25rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-primary);
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(76, 125, 255, 0.5);
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(76, 125, 255, 0.5); }
+            50% { opacity: 0.8; box-shadow: 0 0 20px rgba(76, 125, 255, 0.7); }
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-center a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            letter-spacing: -0.01em;
+        }
+
+        .nav-center a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-cta {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 0.75rem 1.75rem;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(11, 14, 26, 0.15);
+        }
+
+        /* Mobile Nav Toggle */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--text-primary);
+            margin: 6px 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 99;
+            padding: 6rem 2rem 2rem;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .mobile-menu .nav-cta {
+            margin-top: 1rem;
+            text-align: center;
+            padding: 1rem 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 8rem 4rem 4rem;
+            gap: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 70%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(76, 125, 255, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            max-width: 580px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            color: var(--text-secondary);
+            max-width: 460px;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 1.1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(11, 14, 26, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            padding: 1.1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1.5px solid var(--border-medium);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-subtle);
+        }
+
+        /* Device Showcase - Hero */
+        .hero-device-showcase {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .device-frame {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .device-image-container {
+            background: linear-gradient(145deg, #f0f2f8 0%, #e8eaf2 100%);
+            border-radius: 32px;
+            padding: clamp(1.5rem, 4vw, 3rem);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(11, 14, 26, 0.08), 0 20px 40px rgba(11, 14, 26, 0.04);
+        }
+
+        .device-image-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .device-physical {
+            background: linear-gradient(145deg, #1a1f36 0%, #0d1020 100%);
+            border-radius: 12px;
+            padding: 1.25rem 2rem;
+            box-shadow: 0 20px 50px rgba(11, 14, 26, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .device-physical::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .led-display {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: var(--accent-blue);
+            text-shadow: 0 0 20px var(--accent-blue), 0 0 40px rgba(76, 125, 255, 0.5);
+            animation: textGlow 3s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 20px var(--accent-blue), 0 0 40px rgba(76, 125, 255, 0.5); opacity: 1; }
+            50% { text-shadow: 0 0 30px var(--accent-blue), 0 0 60px rgba(76, 125, 255, 0.7); opacity: 0.95; }
+        }
+
+        .device-details {
+            position: absolute;
+            bottom: -2rem;
+            right: -1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .device-detail-tag {
+            background: var(--bg-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            box-shadow: 0 4px 20px rgba(11, 14, 26, 0.08);
+        }
+
+        /* Device Gallery Section */
+        .device-gallery {
+            padding: 6rem 4rem 8rem;
+            background: var(--bg-subtle);
+            position: relative;
+        }
+
+        .device-gallery::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-light);
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .gallery-header h2 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-header p {
+            color: var(--text-secondary);
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: linear-gradient(145deg, #e8eaf2 0%, #dde0eb 100%);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(11, 14, 26, 0.12);
+        }
+
+        .gallery-item.large {
+            grid-column: span 2;
+            grid-row: span 2;
+            aspect-ratio: auto;
+        }
+
+        .gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .gallery-device {
+            background: linear-gradient(145deg, #1a1f36 0%, #0d1020 100%);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 15px 40px rgba(11, 14, 26, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .gallery-led {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--accent-blue);
+            text-shadow: 0 0 15px var(--accent-blue);
+            white-space: nowrap;
+        }
+
+        .gallery-item.large .gallery-device {
+            padding: 1.5rem 2.5rem;
+        }
+
+        .gallery-item.large .gallery-led {
+            font-size: 1.5rem;
+        }
+
+        .gallery-context {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .gallery-item.large .gallery-context {
+            font-size: 0.9rem;
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 6rem 4rem 8rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .section-title {
+            font-size: clamp(1.75rem, 4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--text-secondary);
+            max-width: 550px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .use-case-card {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            border: 1px solid var(--border-light);
+        }
+
+        .use-case-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 60px rgba(11, 14, 26, 0.08);
+            border-color: transparent;
+        }
+
+        .use-case-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .use-case-card.home .use-case-icon { background: linear-gradient(135deg, rgba(244, 196, 48, 0.15), rgba(244, 196, 48, 0.05)); }
+        .use-case-card.work .use-case-icon { background: linear-gradient(135deg, rgba(76, 125, 255, 0.15), rgba(76, 125, 255, 0.05)); }
+        .use-case-card.hosting .use-case-icon { background: linear-gradient(135deg, rgba(110, 231, 168, 0.15), rgba(110, 231, 168, 0.05)); }
+        .use-case-card.studio .use-case-icon { background: linear-gradient(135deg, rgba(240, 138, 36, 0.15), rgba(240, 138, 36, 0.05)); }
+        .use-case-card.data .use-case-icon { background: linear-gradient(135deg, rgba(157, 122, 255, 0.15), rgba(157, 122, 255, 0.05)); }
+
+        .use-case-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .use-case-card .description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .message-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .message-tag {
+            background: var(--bg-subtle);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .use-case-card:hover .message-tag {
+            background: var(--accent-blue-light);
+        }
+
+        .use-case-card.home .message-tag { color: #b8941e; }
+        .use-case-card.work .message-tag { color: var(--accent-blue); }
+        .use-case-card.hosting .message-tag { color: #3cb896; }
+        .use-case-card.studio .message-tag { color: #d4791f; }
+        .use-case-card.data .message-tag { color: var(--accent-purple); }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 6rem 4rem 8rem;
+            background: var(--bg-subtle);
+            position: relative;
+        }
+
+        .how-it-works::before,
+        .how-it-works::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-light);
+        }
+
+        .how-it-works::before { top: 0; }
+        .how-it-works::after { bottom: 0; }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .steps-connector {
+            position: absolute;
+            top: 48px;
+            left: calc(16.67% + 48px);
+            right: calc(16.67% + 48px);
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            opacity: 0.3;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.75rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            box-shadow: 0 10px 40px rgba(11, 14, 26, 0.06);
+            border: 1px solid var(--border-light);
+        }
+
+        .step h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 240px;
+            margin: 0 auto;
+        }
+
+        .reassurance {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem 3rem;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 4px 20px rgba(11, 14, 26, 0.04);
+        }
+
+        .reassurance p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .reassurance strong {
+            color: var(--text-primary);
+        }
+
+        /* App Download Section */
+        .app-download {
+            padding: 6rem 4rem;
+            background: var(--bg-primary);
+        }
+
+        .app-download-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .app-download h2 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .app-download > p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .app-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .app-button {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-dark);
+            color: #fff;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .app-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(11, 14, 26, 0.2);
+        }
+
+        .app-button-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-button-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+        }
+
+        .app-button-text {
+            text-align: left;
+        }
+
+        .app-button-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .app-button-store {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+
+        /* Features */
+        .features {
+            padding: 6rem 4rem 8rem;
+            background: var(--bg-subtle);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .feature-check {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(110, 231, 168, 0.15), rgba(110, 231, 168, 0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .feature-check svg {
+            width: 14px;
+            height: 14px;
+            color: #3cb896;
+        }
+
+        .feature-item p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .coming-soon {
+            max-width: 700px;
+            margin: 4rem auto 0;
+            text-align: center;
+            padding: 2.5rem;
+            background: var(--bg-primary);
+            border-radius: 20px;
+        }
+
+        .coming-soon-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 1.25rem;
+            display: block;
+        }
+
+        .coming-soon-items {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .coming-soon-item {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Product Section */
+        .product {
+            padding: 6rem 4rem 8rem;
+            background: var(--bg-dark);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(ellipse at center, rgba(76, 125, 255, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .product-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .product-image {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            border-radius: 32px;
+            padding: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .product-image::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(76, 125, 255, 0.1) 0%, transparent 60%);
+            border-radius: 32px;
+        }
+
+        .product-device {
+            background: linear-gradient(145deg, #1a1f36 0%, #0f1220 100%);
+            border-radius: 14px;
+            padding: 1.75rem 2.5rem;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .product-led {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: var(--accent-blue);
+            text-shadow: 0 0 20px var(--accent-blue), 0 0 40px rgba(76, 125, 255, 0.5);
+        }
+
+        .product-info h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .product-tagline {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.15rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .product-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .product-includes {
+            margin-bottom: 2.5rem;
+        }
+
+        .product-includes h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 1rem;
+        }
+
+        .product-includes ul {
+            list-style: none;
+        }
+
+        .product-includes li {
+            padding: 0.6rem 0;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            font-size: 0.95rem;
+        }
+
+        .product-includes li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-blue);
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--accent-blue);
+        }
+
+        .btn-buy {
+            background: var(--accent-blue);
+            color: #fff;
+            padding: 1.15rem 3rem;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            box-shadow: 0 8px 30px rgba(76, 125, 255, 0.3);
+        }
+
+        .btn-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(76, 125, 255, 0.45);
+        }
+
+        /* FAQ */
+        .faq {
+            padding: 6rem 4rem 8rem;
+            background: var(--bg-subtle);
+        }
+
+        .faq-grid {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.75rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 10px 40px rgba(11, 14, 26, 0.06);
+        }
+
+        .faq-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .faq-answer {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 2rem;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer-text {
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 8rem 2rem 4rem;
+            }
+
+            .hero-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .hero p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .gallery-item.large {
+                grid-column: span 2;
+                grid-row: span 1;
+            }
+
+            .product-container {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                text-align: center;
+            }
+
+            .product-includes ul {
+                display: inline-block;
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .nav-center {
+                display: none;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .hero {
+                padding: 7rem 1.5rem 3rem;
+                min-height: auto;
+            }
+
+            .device-details {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 1.5rem;
+            }
+
+            .device-gallery,
+            .use-cases,
+            .how-it-works,
+            .features,
+            .product,
+            .faq,
+            .app-download {
+                padding: 4rem 1.5rem;
+            }
+
+            .steps-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .steps-connector {
+                display: none;
+            }
+
+            .step-number {
+                width: 72px;
+                height: 72px;
+                font-size: 1.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .gallery-item.large {
+                grid-column: span 1;
+            }
+
+            .gallery-item {
+                aspect-ratio: 16/10;
+            }
+
+            .section-header {
+                margin-bottom: 2.5rem;
+            }
+
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .app-button {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .product-image {
+                padding: 2rem;
+            }
+
+            .coming-soon-items {
+                gap: 1.5rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .password-container {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-delay-1 { transition-delay: 0.1s; }
+        .fade-in-delay-2 { transition-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+        <nav>
+            <div class="logo">
+                <span class="logo-dot"></span>
+                Lumes
+            </div>
+            <ul class="nav-center">
+                <li><a href="#gallery">The Device</a></li>
+                <li><a href="#use-cases">Use Cases</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#app">Get the App</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            <div class="nav-right">
+                <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="#product" class="nav-cta">Get Lumes</a>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#gallery">The Device</a>
+            <a href="#use-cases">Use Cases</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#app">Get the App</a>
+            <a href="#faq">FAQ</a>
+            <a href="#product" class="nav-cta">Get Lumes</a>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Say it once.<br>Let it glow.</h1>
+                <p>A simple LED display you control from your phone. Put a message where it matters—in seconds.</p>
+                <div class="hero-buttons">
+                    <a href="#product" class="btn-primary">Get Lumes</a>
+                    <a href="#use-cases" class="btn-secondary">See how people use it</a>
+                </div>
+            </div>
+            <div class="hero-device-showcase">
+                <div class="device-frame">
+                    <div class="device-image-container">
+                        <div class="device-physical">
+                            <div class="led-display">WELCOME HOME</div>
+                        </div>
+                    </div>
+                    <div class="device-details">
+                        <span class="device-detail-tag">Compact Design</span>
+                        <span class="device-detail-tag">App Controlled</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Device Gallery Section -->
+        <section class="device-gallery" id="gallery">
+            <div class="gallery-header fade-in">
+                <h2>Designed to fit your space</h2>
+                <p>Compact, elegant, and ready to display your message anywhere.</p>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="gallery-item large fade-in">
+                    <div class="gallery-placeholder">
+                        <div class="gallery-device">
+                            <div class="gallery-led">DO NOT DISTURB</div>
+                        </div>
+                        <span class="gallery-context">Home Office</span>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in fade-in-delay-1">
+                    <div class="gallery-placeholder">
+                        <div class="gallery-device">
+                            <div class="gallery-led">OPEN</div>
+                        </div>
+                        <span class="gallery-context">Studio</span>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in fade-in-delay-2">
+                    <div class="gallery-placeholder">
+                        <div class="gallery-device">
+                            <div class="gallery-led">DRINKS →</div>
+                        </div>
+                        <span class="gallery-context">Party</span>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in fade-in-delay-1">
+                    <div class="gallery-placeholder">
+                        <div class="gallery-device">
+                            <div class="gallery-led">AAPL +2.4%</div>
+                        </div>
+                        <span class="gallery-context">Live Data</span>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in fade-in-delay-2">
+                    <div class="gallery-placeholder">
+                        <div class="gallery-device">
+                            <div class="gallery-led">72°F ☀</div>
+                        </div>
+                        <span class="gallery-context">Weather</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases Section -->
+        <section class="use-cases" id="use-cases">
+            <div class="section-header fade-in">
+                <span class="section-label">Real-World Use</span>
+                <h2 class="section-title">Messages that make sense</h2>
+                <p class="section-subtitle">No more handwritten notes. No more printed signs. Just quick, clear messages that everyone can read.</p>
+            </div>
+
+            <div class="use-cases-grid">
+                <div class="use-case-card home fade-in">
+                    <div class="use-case-icon">🏠</div>
+                    <h3>Home & Family</h3>
+                    <p class="description">Keep everyone in the loop without shouting across the house or sending another text.</p>
+                    <div class="message-examples">
+                        <span class="message-tag">"Dinner at 6"</span>
+                        <span class="message-tag">"Quiet time"</span>
+                        <span class="message-tag">"Be right back"</span>
+                        <span class="message-tag">"Kids' turn"</span>
+                    </div>
+                </div>
+
+                <div class="use-case-card work fade-in">
+                    <div class="use-case-icon">💼</div>
+                    <h3>Work & Focus</h3>
+                    <p class="description">Set boundaries without awkward conversations. Let your space speak for you.</p>
+                    <div class="message-examples">
+                        <span class="message-tag">"In a meeting"</span>
+                        <span class="message-tag">"Do not disturb"</span>
+                        <span class="message-tag">"Recording"</span>
+                        <span class="message-tag">"War room →"</span>
+                    </div>
+                </div>
+
+                <div class="use-case-card hosting fade-in">
+                    <div class="use-case-icon">🎉</div>
+                    <h3>Hosting & Events</h3>
+                    <p class="description">Guide your guests effortlessly. Change the message as the party evolves.</p>
+                    <div class="message-examples">
+                        <span class="message-tag">"Welcome"</span>
+                        <span class="message-tag">"Drinks this way →"</span>
+                        <span class="message-tag">"Wi-Fi inside"</span>
+                    </div>
+                </div>
+
+                <div class="use-case-card studio fade-in">
+                    <div class="use-case-icon">🏪</div>
+                    <h3>Studios & Small Spaces</h3>
+                    <p class="description">Professional signage without the hassle. Update in real-time from anywhere.</p>
+                    <div class="message-examples">
+                        <span class="message-tag">"Open"</span>
+                        <span class="message-tag">"Back soon"</span>
+                        <span class="message-tag">"Pickup here →"</span>
+                    </div>
+                </div>
+
+                <div class="use-case-card data fade-in">
+                    <div class="use-case-icon">📊</div>
+                    <h3>Live Data Feeds</h3>
+                    <p class="description">Stay informed at a glance. Connect Lumes to real-time data streams that matter to you.</p>
+                    <div class="message-examples">
+                        <span class="message-tag">Stock prices</span>
+                        <span class="message-tag">Weather</span>
+                        <span class="message-tag">Sports scores</span>
+                        <span class="message-tag">News alerts</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="section-header fade-in">
+                <span class="section-label">Simple Setup</span>
+                <h2 class="section-title">Three steps. That's it.</h2>
+            </div>
+
+            <div class="steps-container">
+                <div class="steps-connector"></div>
+                <div class="step fade-in">
+                    <div class="step-number">1</div>
+                    <h3>Power it on</h3>
+                    <p>Plug in Lumes and watch it come to life.</p>
+                </div>
+
+                <div class="step fade-in fade-in-delay-1">
+                    <div class="step-number">2</div>
+                    <h3>Open the app</h3>
+                    <p>Connect with the Lumes app on your phone.</p>
+                </div>
+
+                <div class="step fade-in fade-in-delay-2">
+                    <div class="step-number">3</div>
+                    <h3>Type your message</h3>
+                    <p>Choose a direction and hit send.</p>
+                </div>
+            </div>
+
+            <div class="reassurance fade-in">
+                <p><strong>Designed to be intuitive.</strong> No learning curve. No manual required.</p>
+            </div>
+        </section>
+
+        <!-- App Download Section -->
+        <section class="app-download" id="app">
+            <div class="app-download-container fade-in">
+                <h2>Get the Lumes App</h2>
+                <p>Control your display from anywhere. Available for iOS and Android.</p>
+                
+                <div class="app-buttons">
+                    <a href="#" class="app-button">
+                        <div class="app-button-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                            </svg>
+                        </div>
+                        <div class="app-button-text">
+                            <span class="app-button-label">Download on the</span>
+                            <span class="app-button-store">App Store</span>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="app-button">
+                        <div class="app-button-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
+                            </svg>
+                        </div>
+                        <div class="app-button-text">
+                            <span class="app-button-label">Get it on</span>
+                            <span class="app-button-store">Google Play</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features" id="features">
+            <div class="section-header fade-in">
+                <span class="section-label">What You Get</span>
+                <h2 class="section-title">Simple by design</h2>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item fade-in">
+                    <div class="feature-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <p>Change messages instantly from your phone</p>
+                </div>
+
+                <div class="feature-item fade-in">
+                    <div class="feature-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <p>Bright, clear display designed to be read at a glance</p>
+                </div>
+
+                <div class="feature-item fade-in">
+                    <div class="feature-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <p>Directional messages to guide people</p>
+                </div>
+
+                <div class="feature-item fade-in">
+                    <div class="feature-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <p>Remembers your last message</p>
+                </div>
+
+                <div class="feature-item fade-in">
+                    <div class="feature-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <p>Fits naturally on desks, counters, shelves, and entryways</p>
+                </div>
+            </div>
+
+            <div class="coming-soon fade-in">
+                <span class="coming-soon-label">Coming Soon</span>
+                <div class="coming-soon-items">
+                    <span class="coming-soon-item">Scheduled messages</span>
+                    <span class="coming-soon-item">More styles & animations</span>
+                    <span class="coming-soon-item">Multi-Lumes control</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Section -->
+        <section class="product" id="product">
+            <div class="product-container">
+                <div class="product-image fade-in">
+                    <div class="product-device">
+                        <div class="product-led">HELLO →</div>
+                    </div>
+                </div>
+
+                <div class="product-info fade-in">
+                    <h2>Lumes</h2>
+                    <p class="product-tagline">LED Message Display</p>
+                    <p class="product-description">Everything you need to start sharing messages the simple way.</p>
+
+                    <div class="product-includes">
+                        <h4>What's Included</h4>
+                        <ul>
+                            <li>Lumes LED display unit</li>
+                            <li>USB-C power cable</li>
+                            <li>Quick start guide</li>
+                            <li>Free Lumes app (iOS & Android)</li>
+                        </ul>
+                    </div>
+
+                    <div class="product-price">
+                        Coming Soon
+                    </div>
+
+                    <a href="#" class="btn-buy">Get Lumes</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq" id="faq">
+            <div class="section-header fade-in">
+                <span class="section-label">Questions</span>
+                <h2 class="section-title">Good to know</h2>
+            </div>
+
+            <div class="faq-grid">
+                <div class="faq-item fade-in">
+                    <div class="faq-question">Is it easy to set up?</div>
+                    <p class="faq-answer">Yes. Plug it in, open the app, and you're ready to go. Most people are up and running in under a minute.</p>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <div class="faq-question">Can I change messages anytime?</div>
+                    <p class="faq-answer">Absolutely. Update your message as often as you like, from anywhere your phone has a connection.</p>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <div class="faq-question">Where does it work best?</div>
+                    <p class="faq-answer">Anywhere you'd put a note or sign—desks, kitchen counters, entryways, studio doors, shop windows. It's designed to fit naturally into your space.</p>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <div class="faq-question">Does it remember my message?</div>
+                    <p class="faq-answer">Yes. Lumes keeps your last message displayed even after power interruptions. No need to reset it every time.</p>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <div class="faq-question">Can I add more later?</div>
+                    <p class="faq-answer">You can have multiple Lumes throughout your home or workspace. Multi-device control from a single app is coming soon.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-logo">
+                <span class="logo-dot"></span>
+                Lumes
+            </div>
+            <p class="footer-text">© 2026 Blue Hill Foundry. Crafted with care.</p>
+        </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Navigation
+        const navToggle = document.getElementById('navToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        navToggle.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // LED text animation
+        const messages = [
+            'WELCOME HOME',
+            'DINNER AT 6',
+            'DO NOT DISTURB',
+            'BE RIGHT BACK',
+            'RECORDING →',
+            'OPEN'
+        ];
+
+        let messageIndex = 0;
+        const ledDisplay = document.querySelector('.led-display');
+
+        function cycleMessage() {
+            ledDisplay.style.opacity = '0';
+            ledDisplay.style.transition = 'opacity 0.3s ease';
+            
+            setTimeout(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                ledDisplay.textContent = messages[messageIndex];
+                ledDisplay.style.opacity = '1';
+            }, 300);
+        }
+
+        setInterval(cycleMessage, 3500);
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
